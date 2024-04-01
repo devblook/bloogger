@@ -1,0 +1,16 @@
+[package]
+name = "bloogger"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+moka = { version = "0.12.5", features = ["future"] }
+poise = "0.6.1"
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.115"
+serenity = "0.12.1"
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
