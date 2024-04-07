@@ -4,6 +4,7 @@ use moka::{
     future::{Cache, FutureExt},
     notification::{ListenerFuture, RemovalCause},
 };
+use serenity::prelude::TypeMapKey;
 use tracing::{error, info, instrument};
 
 use self::error::{Error, LoadError, SaveError};
@@ -24,6 +25,10 @@ fn get_config_path(id: u64) -> PathBuf {
 
 pub struct GuildConfigCache {
     guild_configs: Cache<u64, GuildConfig>,
+}
+
+impl TypeMapKey for GuildConfigCache {
+    type Value = Self;
 }
 
 impl GuildConfigCache {
@@ -131,7 +136,7 @@ impl GuildConfigCache {
             Ok(config) => config,
             Err(err) => {
                 error!("Failed to deserialize config from JSON: {err}");
-                return Err(LoadError::ConfigNotFound(id));
+                return Err(LoadError::FailedDeserialization(err));
             }
         };
 

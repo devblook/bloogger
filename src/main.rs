@@ -1,5 +1,6 @@
-mod cache;
-mod config;
-
 #[tokio::main]
-async fn main() {}
+async fn main() {
+    tracing_subscriber::fmt().init();
+
+    bloogger::init().await;
+}
