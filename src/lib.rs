@@ -12,6 +12,7 @@ mod colors;
 mod config;
 mod data;
 mod handler;
+mod texts;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, (), Error>;
@@ -70,7 +71,13 @@ pub async fn init() {
 
     {
         let mut data = client.data.write().await;
-        data.insert::<Data>(Data::default());
+        data.insert::<Data>(match Data::new() {
+            Ok(data) => data,
+            Err(err) => {
+                error!("Failed to create Data: {err:?}");
+                return;
+            }
+        });
     }
 
     if let Err(err) = client.start().await {
