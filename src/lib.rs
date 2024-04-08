@@ -8,6 +8,7 @@ use tracing::{error, info, instrument};
 use handler::Handler;
 
 mod cache;
+mod colors;
 mod config;
 mod data;
 mod handler;
