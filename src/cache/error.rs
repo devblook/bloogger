@@ -41,6 +41,12 @@ pub enum LoadError {
     FailedReading(std::io::Error),
 }
 
+impl From<u64> for LoadError {
+    fn from(id: u64) -> Self {
+        Self::ConfigNotFound(id)
+    }
+}
+
 impl From<serde_json::Error> for LoadError {
     fn from(value: serde_json::Error) -> Self {
         Self::FailedDeserialization(value)

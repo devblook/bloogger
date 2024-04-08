@@ -1,22 +1,22 @@
-use std::{fs, path::PathBuf, sync::Arc, time::Duration};
+use std::{env::current_dir, fs, path::PathBuf, sync::Arc, time::Duration};
 
 use moka::{
     future::{Cache, FutureExt},
     notification::{ListenerFuture, RemovalCause},
 };
-use serenity::prelude::TypeMapKey;
 use tracing::{error, info, instrument};
 
 use self::error::{Error, LoadError, SaveError};
 use crate::config::GuildConfig;
 
-mod error;
+pub mod error;
 
 const CACHE_DURATION_IN_SECONDS: u64 = 20 * 60;
 
+#[instrument]
 fn get_config_path(id: u64) -> PathBuf {
     let mut path = PathBuf::new();
-    path.push(env!("CARGO_MANIFEST_DIR"));
+    path.push(current_dir().expect("The current directory could not be obtained."));
     path.push("configs");
     path.push(format!("{id}.json"));
 
@@ -25,10 +25,6 @@ fn get_config_path(id: u64) -> PathBuf {
 
 pub struct GuildConfigCache {
     guild_configs: Cache<u64, GuildConfig>,
-}
-
-impl TypeMapKey for GuildConfigCache {
-    type Value = Self;
 }
 
 impl GuildConfigCache {
@@ -67,13 +63,13 @@ impl GuildConfigCache {
     }
 
     #[instrument(skip(self))]
-    pub async fn get(&self, id: u64) -> Result<GuildConfig, Error> {
+    pub async fn get_or_insert(&self, id: u64) -> Result<GuildConfig, Error> {
         info!("Trying to get config...");
         let config = self.guild_configs.get(&id).await;
 
         if config.is_none() {
             info!("Config wasn't loaded.");
-            self.load(id).await?;
+            self.load(id, true).await?;
             return Ok(self
                 .guild_configs
                 .get(&id)
@@ -90,7 +86,7 @@ impl GuildConfigCache {
         info!("Saving GuildConfig...");
         let path = get_config_path(id);
 
-        if !config.has_changed {
+        if !config.has_changed() {
             info!("Nothing to do.");
             return Ok(false);
         }
@@ -116,12 +112,19 @@ impl GuildConfigCache {
     }
 
     #[instrument(skip(self))]
-    async fn load(&self, id: u64) -> Result<GuildConfig, LoadError> {
+    async fn load(&self, id: u64, insert_if_not_found: bool) -> Result<GuildConfig, LoadError> {
         info!("Loading config...");
         let path = get_config_path(id);
         if !path.exists() {
+            if insert_if_not_found {
+                let config = GuildConfig::default();
+                self.guild_configs.insert(id, config.clone()).await;
+                info!("Config loaded by inserting a new one.");
+                return Ok(config);
+            }
+
             error!("Config file doesn't exist.");
-            return Err(LoadError::ConfigNotFound(id));
+            return Err(LoadError::from(id));
         }
 
         let raw_data = match fs::read_to_string(&path) {
@@ -136,11 +139,11 @@ impl GuildConfigCache {
             Ok(config) => config,
             Err(err) => {
                 error!("Failed to deserialize config from JSON: {err}");
-                return Err(LoadError::FailedDeserialization(err));
+                return Err(LoadError::from(err));
             }
         };
 
-        self.guild_configs.insert(id, config).await;
+        self.guild_configs.insert(id, config.clone()).await;
 
         info!("Config loaded.");
         Ok(config)
@@ -151,5 +154,11 @@ impl GuildConfigCache {
         info!("Running pending tasks...");
         self.guild_configs.run_pending_tasks().await;
         info!("Pending tasks completed.");
+    }
+}
+
+impl Default for GuildConfigCache {
+    fn default() -> Self {
+        Self::new()
     }
 }
