@@ -1,4 +1,4 @@
-use std::{env::current_dir, fs, path::PathBuf};
+use std::{env::current_dir, fs, path::PathBuf, sync::Arc};
 
 use serenity::prelude::TypeMapKey;
 use tracing::{error, info};
@@ -64,10 +64,10 @@ impl Data {
             }
         };
 
-        return Ok(Self { cache, texts });
+        Ok(Self { cache, texts })
     }
 }
 
 impl TypeMapKey for Data {
-    type Value = Self;
+    type Value = Arc<Self>;
 }

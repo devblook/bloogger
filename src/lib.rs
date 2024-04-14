@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, sync::Arc};
 
 use data::Data;
 use poise::{samples::register_globally, Framework, FrameworkOptions};
@@ -69,22 +69,36 @@ pub async fn init() {
 
     let mut client = client.expect("Err case was handled earlier.");
 
-    {
-        let mut data = client.data.write().await;
-        data.insert::<Data>(match Data::new() {
-            Ok(data) => data,
-            Err(err) => {
-                error!("Failed to create Data: {err:?}");
-                return;
-            }
+    let data = Arc::new(match Data::new() {
+        Ok(data) => data,
+        Err(err) => {
+            error!("Failed to create Data: {err:?}");
+            return;
+        }
+    });
+
+    let cloned_data = data.clone();
+
+    let runtime = tokio::runtime::Handle::current();
+    let shard_manager = Arc::downgrade(&client.shard_manager);
+    let handler = ctrlc::set_handler(move || {
+        runtime.block_on(async {
+            shard_manager.upgrade().unwrap().shutdown_all().await;
+            cloned_data.cache.invalidate_all();
+            cloned_data.cache.run_pending_tasks().await;
         });
+    });
+
+    if let Err(err) = handler {
+        error!("Failed to set CtrlC handler: {err}");
+    }
+
+    {
+        let mut client_data = client.data.write().await;
+        client_data.insert::<Data>(data);
     }
 
     if let Err(err) = client.start().await {
         error!("Client error: {err}");
     }
-
-    let data = client.data.read().await;
-    let data = data.get::<Data>().expect("Data should never be none.");
-    data.cache.run_pending_tasks().await;
 }

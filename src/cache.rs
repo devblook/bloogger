@@ -46,13 +46,16 @@ impl GuildConfigCache {
     #[instrument]
     fn on_eviction(key: Arc<u64>, value: GuildConfig, cause: RemovalCause) -> ListenerFuture {
         info!("Key has evicted.");
+        let id = *key.as_ref();
         async move {
-            if cause == RemovalCause::Expired {
-                info!("Key was removed because it expired.");
-                Self::save(*key.as_ref(), value).await.unwrap();
-            }
+            let _ = Self::save(id, value).await;
         }
         .boxed()
+    }
+
+    #[instrument(skip(self))]
+    pub fn invalidate_all(&self) {
+        self.guild_configs.invalidate_all();
     }
 
     #[instrument(skip(self))]
@@ -84,11 +87,22 @@ impl GuildConfigCache {
     #[instrument]
     async fn save(id: u64, config: GuildConfig) -> Result<bool, SaveError> {
         info!("Saving GuildConfig...");
-        let path = get_config_path(id);
 
         if !config.has_changed() {
             info!("Nothing to do.");
             return Ok(false);
+        }
+
+        let path = get_config_path(id);
+        let directory = path
+            .parent()
+            .expect("Function should always return a file path.");
+
+        if !directory.exists() {
+            if let Err(err) = fs::create_dir(directory) {
+                error!("Failed to create directory: {err}");
+                return Err(SaveError::from(err));
+            };
         }
 
         let json = match serde_json::to_string(&config) {
@@ -113,7 +127,7 @@ impl GuildConfigCache {
 
     #[instrument(skip(self))]
     async fn load(&self, id: u64, insert_if_not_found: bool) -> Result<GuildConfig, LoadError> {
-        info!("Loading config...");
+        info!("Loading GuildConfig...");
         let path = get_config_path(id);
         if !path.exists() {
             if insert_if_not_found {
