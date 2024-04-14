@@ -31,7 +31,7 @@ impl Data {
                 Ok(json) => json,
                 Err(err) => {
                     error!("Failed to serialize texts to JSON: {err}");
-                    return Err(Error::FailedSerialization(err));
+                    return Err(Error::Serialization(err));
                 }
             };
 
@@ -41,7 +41,7 @@ impl Data {
                 }
                 Err(err) => {
                     error!("Failed to write texts file: {err}");
-                    return Err(Error::FailedWriting(err));
+                    return Err(Error::Writing(err));
                 }
             }
 
@@ -52,7 +52,7 @@ impl Data {
             Ok(path) => path,
             Err(err) => {
                 error!("Failed to read data file: {err}");
-                return Err(Error::FailedReading(err));
+                return Err(Error::Reading(err));
             }
         };
 
@@ -60,7 +60,7 @@ impl Data {
             Ok(texts) => texts,
             Err(err) => {
                 error!("Failed to deserialize texts from JSON: {err}");
-                return Err(Error::FailedDeserialization(err));
+                return Err(Error::Deserialization(err));
             }
         };
 
