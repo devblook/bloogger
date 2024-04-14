@@ -22,12 +22,12 @@ impl Data {
 
         let mut path = PathBuf::new();
         path.push(current_dir().expect("The current directory could not be obtained."));
-        path.push("configs");
+        path.push("texts.json");
 
         if !path.exists() {
             let texts = Texts::default();
 
-            let json = match serde_json::to_string(&texts) {
+            let json = match serde_json::to_string_pretty(&texts) {
                 Ok(json) => json,
                 Err(err) => {
                     error!("Failed to serialize texts to JSON: {err}");
