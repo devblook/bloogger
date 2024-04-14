@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ctrlc = "3.4.4"
 moka = { version = "0.12.5", features = ["future"] }
 poise = "0.6.1"
 serde = { version = "1.0.197", features = ["derive"] }
