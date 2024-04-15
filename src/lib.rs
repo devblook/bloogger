@@ -1,10 +1,10 @@
 use std::{env, sync::Arc};
 
-use data::Data;
 use poise::{samples::register_globally, Framework, FrameworkOptions};
 use serenity::{all::GatewayIntents, cache::Settings, Client};
 use tracing::{error, info, instrument};
 
+use data::Data;
 use handler::Handler;
 
 mod cache;
@@ -12,6 +12,7 @@ mod colors;
 mod config;
 mod data;
 mod handler;
+mod messages;
 mod texts;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
