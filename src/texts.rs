@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct Texts {
     error_embed_title: String,
     missing_administrator_permission: String,

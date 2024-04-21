@@ -9,6 +9,7 @@ use data::Data;
 use handler::Handler;
 
 mod cache;
+mod channel;
 mod colors;
 mod command;
 mod config;
@@ -82,9 +83,10 @@ pub async fn init() {
     let shard_manager = Arc::downgrade(&client.shard_manager);
     let handler = ctrlc::set_handler(move || {
         runtime.block_on(async {
-            shard_manager.upgrade().unwrap().shutdown_all().await;
             cloned_data.cache.invalidate_all();
             cloned_data.cache.run_pending_tasks().await;
+            let _ = Data::save_texts(&cloned_data.texts);
+            shard_manager.upgrade().unwrap().shutdown_all().await;
         });
     });
 

@@ -21,29 +21,21 @@ impl Data {
         info!("Loading texts...");
 
         let mut path = PathBuf::new();
-        path.push(current_dir().expect("The current directory could not be obtained."));
+        let dir = match current_dir() {
+            Ok(dir) => dir,
+            Err(err) => {
+                error!("The current directory could not be obtained.");
+                return Err(Error::Reading(err));
+            }
+        };
+
+        path.push(dir);
         path.push("texts.json");
 
         if !path.exists() {
             let texts = Texts::default();
 
-            let json = match serde_json::to_string_pretty(&texts) {
-                Ok(json) => json,
-                Err(err) => {
-                    error!("Failed to serialize texts to JSON: {err}");
-                    return Err(Error::Serialization(err));
-                }
-            };
-
-            match fs::write(path, json) {
-                Ok(_) => {
-                    info!("Texts saved successfully.");
-                }
-                Err(err) => {
-                    error!("Failed to write texts file: {err}");
-                    return Err(Error::Writing(err));
-                }
-            }
+            Self::save_texts(&texts)?;
 
             return Ok(Self { cache, texts });
         }
@@ -65,6 +57,39 @@ impl Data {
         };
 
         Ok(Self { cache, texts })
+    }
+
+    pub fn save_texts(texts: &Texts) -> Result<(), Error> {
+        let mut path = PathBuf::new();
+        let dir = match current_dir() {
+            Ok(dir) => dir,
+            Err(err) => {
+                error!("The current directory could not be obtained.");
+                return Err(Error::Reading(err));
+            }
+        };
+
+        path.push(dir);
+        path.push("texts.json");
+
+        let json = match serde_json::to_string_pretty(&texts) {
+            Ok(json) => json,
+            Err(err) => {
+                error!("Failed to serialize texts to JSON: {err}");
+                return Err(Error::Serialization(err));
+            }
+        };
+
+        match fs::write(path, json) {
+            Ok(_) => {
+                info!("Texts saved successfully.");
+                Ok(())
+            }
+            Err(err) => {
+                error!("Failed to write texts file: {err}");
+                Err(Error::Writing(err))
+            }
+        }
     }
 }
 
