@@ -4,7 +4,7 @@ use moka::{
     future::{Cache, FutureExt},
     notification::{ListenerFuture, RemovalCause},
 };
-use tracing::{error, info, instrument};
+use tracing::{debug, error, info, instrument};
 
 use self::error::{Error, LoadError, SaveError};
 use crate::config::GuildConfig;
@@ -45,7 +45,7 @@ impl GuildConfigCache {
 
     #[instrument]
     fn on_eviction(key: Arc<u64>, value: GuildConfig, cause: RemovalCause) -> ListenerFuture {
-        info!("Key has evicted.");
+        debug!("Key has evicted.");
         let id = *key.as_ref();
         async move {
             let _ = Self::save(id, value).await;
@@ -60,18 +60,18 @@ impl GuildConfigCache {
 
     #[instrument(skip(self))]
     pub async fn insert(&self, id: u64, config: GuildConfig) {
-        info!("Inserting key...");
+        debug!("Inserting key...");
         self.guild_configs.insert(id, config).await;
-        info!("Key inserted.");
+        debug!("Key inserted.");
     }
 
     #[instrument(skip(self))]
     pub async fn get_or_insert(&self, id: u64) -> Result<GuildConfig, Error> {
-        info!("Trying to get config...");
+        debug!("Trying to get config...");
         let config = self.guild_configs.get(&id).await;
 
         if config.is_none() {
-            info!("Config wasn't loaded.");
+            debug!("Config wasn't loaded.");
             self.load(id, true).await?;
             return Ok(self
                 .guild_configs
@@ -80,16 +80,16 @@ impl GuildConfigCache {
                 .expect("Config should be in memory."));
         }
 
-        info!("Config was loaded.");
+        debug!("Config was loaded.");
         Ok(config.expect("None case was handled earlier."))
     }
 
     #[instrument]
     async fn save(id: u64, config: GuildConfig) -> Result<bool, SaveError> {
-        info!("Saving GuildConfig...");
+        debug!("Saving GuildConfig...");
 
         if !config.has_changed() {
-            info!("Nothing to do.");
+            debug!("Nothing to do.");
             return Ok(false);
         }
 
@@ -115,7 +115,7 @@ impl GuildConfigCache {
 
         match fs::write(path, json) {
             Ok(_) => {
-                info!("Saved successfully.");
+                debug!("Saved successfully.");
                 Ok(true)
             }
             Err(err) => {
@@ -127,13 +127,13 @@ impl GuildConfigCache {
 
     #[instrument(skip(self))]
     async fn load(&self, id: u64, insert_if_not_found: bool) -> Result<GuildConfig, LoadError> {
-        info!("Loading GuildConfig...");
+        debug!("Loading GuildConfig...");
         let path = get_config_path(id);
         if !path.exists() {
             if insert_if_not_found {
                 let config = GuildConfig::default();
                 self.guild_configs.insert(id, config.clone()).await;
-                info!("Config loaded by inserting a new one.");
+                debug!("Config loaded by inserting a new one.");
                 return Ok(config);
             }
 
@@ -159,7 +159,7 @@ impl GuildConfigCache {
 
         self.guild_configs.insert(id, config.clone()).await;
 
-        info!("Config loaded.");
+        debug!("Config loaded.");
         Ok(config)
     }
 
