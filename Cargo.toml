@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 chrono = { version = "0.4.38", features = ["now"] }
-ctrlc = "3.4.4"
+ctrlc = { version = "3.4.4", features = ["termination"] }
 moka = { version = "0.12.5", features = ["future"] }
 poise = "0.6.1"
 serde = { version = "1.0.197", features = ["derive"] }
