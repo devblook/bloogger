@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+use crate::event::message_delete;
+
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Texts {
     error_embed_title: String,
@@ -10,6 +12,8 @@ pub struct Texts {
     not_valid_channel: String,
     success_embed_title: String,
     channel_setted_message: String,
+
+    pub message_delete: message_delete::Texts,
 }
 
 impl Texts {
@@ -58,6 +62,8 @@ impl Default for Texts {
             not_valid_channel: String::from("Channel is not a text or voice channel."),
             success_embed_title: String::from("Success"),
             channel_setted_message: String::from("Channel was set."),
+
+            message_delete: message_delete::Texts::default(),
         }
     }
 }

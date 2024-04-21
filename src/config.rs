@@ -5,6 +5,7 @@ use tracing::instrument;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct GuildConfig {
+    #[serde(rename = "c")]
     channels: HashMap<String, u64>,
 
     #[serde(skip_serializing, skip_deserializing)]
@@ -24,6 +25,8 @@ impl GuildConfig {
 
     #[instrument(skip(self))]
     pub fn set_channel(&mut self, key: &str, channel_id: Option<u64>) {
+        self.has_changed = true;
+
         if channel_id.is_none() {
             self.channels.remove(key);
             return;
@@ -33,7 +36,5 @@ impl GuildConfig {
             key.to_string(),
             channel_id.expect("None case was handled earlier."),
         );
-
-        self.has_changed = true;
     }
 }

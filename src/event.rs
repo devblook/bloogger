@@ -1,3 +1,5 @@
+pub mod message_delete;
+
 #[derive(poise::ChoiceParameter)]
 pub enum Event {
     #[name = "Message Delete"]
@@ -7,7 +9,7 @@ pub enum Event {
 impl Event {
     pub fn key(&self) -> &str {
         match self {
-            Self::MessageDelete => "MESSAGE_DELETE",
+            Self::MessageDelete => "MD",
         }
     }
 }

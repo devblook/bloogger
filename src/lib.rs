@@ -56,19 +56,6 @@ pub async fn init() {
     let mut settings = Settings::default();
     settings.max_messages = 500;
 
-    let client = Client::builder(token, intents)
-        .framework(framework)
-        .cache_settings(settings)
-        .event_handler(Handler)
-        .await;
-
-    if let Err(err) = client {
-        error!("Failed to create client: {err}");
-        return;
-    }
-
-    let mut client = client.expect("Err case was handled earlier.");
-
     let data = Arc::new(match Data::new() {
         Ok(data) => data,
         Err(err) => {
@@ -78,6 +65,19 @@ pub async fn init() {
     });
 
     let cloned_data = data.clone();
+
+    let client = Client::builder(token, intents)
+        .framework(framework)
+        .cache_settings(settings)
+        .event_handler(Handler::new(data.texts.clone()))
+        .await;
+
+    if let Err(err) = client {
+        error!("Failed to create client: {err}");
+        return;
+    }
+
+    let mut client = client.expect("Err case was handled earlier.");
 
     let runtime = tokio::runtime::Handle::current();
     let shard_manager = Arc::downgrade(&client.shard_manager);
