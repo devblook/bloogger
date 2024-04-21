@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::event::message_delete;
+use crate::event::{message_delete, message_update};
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -14,6 +14,7 @@ pub struct Texts {
     channel_setted_message: String,
 
     pub message_delete: message_delete::Texts,
+    pub message_update: message_update::Texts,
 }
 
 impl Texts {
@@ -64,6 +65,7 @@ impl Default for Texts {
             channel_setted_message: String::from("Channel was set."),
 
             message_delete: message_delete::Texts::default(),
+            message_update: message_update::Texts::default(),
         }
     }
 }

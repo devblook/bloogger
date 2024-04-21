@@ -1,9 +1,10 @@
+use serenity::all::{Message, MessageUpdateEvent};
 use serenity::{
     all::{ChannelId, GuildId, MessageId},
     client::{Context, EventHandler},
 };
 
-use crate::{data::Data, event, texts::Texts};
+use crate::{event, texts::Texts};
 
 pub struct Handler {
     texts: Texts,
@@ -32,5 +33,16 @@ impl EventHandler for Handler {
             &self.texts,
         )
         .await
+    }
+
+    async fn message_update(
+        &self,
+        ctx: Context,
+        old_if_available: Option<Message>,
+        new: Option<Message>,
+        event: MessageUpdateEvent,
+    ) {
+        event::message_update::message_update_event(ctx, old_if_available, new, event, &self.texts)
+            .await
     }
 }
