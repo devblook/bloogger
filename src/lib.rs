@@ -94,10 +94,32 @@ pub async fn init() {
         error!("Failed to set CtrlC handler: {err}");
     }
 
+    let shard_manager = Arc::downgrade(&client.shard_manager);
+    let cloned_data = data.clone();
+
+    tokio::spawn(async move {
+        loop {
+            let stdin = std::io::stdin();
+            let mut input = String::new();
+
+            stdin.read_line(&mut input).expect("Failed to read line.");
+
+            if input.trim() == "stop" {
+                cloned_data.cache.invalidate_all();
+                cloned_data.cache.run_pending_tasks().await;
+                let _ = Data::save_texts(&cloned_data.texts);
+                shard_manager.upgrade().unwrap().shutdown_all().await;
+                break;
+            }
+        }
+    });
+
     {
         let mut client_data = client.data.write().await;
         client_data.insert::<Data>(data);
     }
+
+    info!("Bot started.");
 
     if let Err(err) = client.start().await {
         error!("Client error: {err}");
