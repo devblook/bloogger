@@ -64,8 +64,6 @@ pub async fn init() {
         }
     });
 
-    let cloned_data = data.clone();
-
     let client = Client::builder(token, intents)
         .framework(framework)
         .cache_settings(settings)
@@ -79,17 +77,7 @@ pub async fn init() {
 
     let mut client = client.expect("Err case was handled earlier.");
 
-    let runtime = tokio::runtime::Handle::current();
-    let shard_manager = Arc::downgrade(&client.shard_manager);
-    let handler = ctrlc::set_handler(move || {
-        runtime.block_on(async {
-            cloned_data.cache.invalidate_all();
-            cloned_data.cache.run_pending_tasks().await;
-            let _ = Data::save_texts(&cloned_data.texts);
-            shard_manager.upgrade().unwrap().shutdown_all().await;
-        });
-    });
-
+    let handler = ctrlc::set_handler(|| {});
     if let Err(err) = handler {
         error!("Failed to set CtrlC handler: {err}");
     }
