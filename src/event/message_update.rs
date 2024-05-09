@@ -57,6 +57,11 @@ pub async fn message_update_event(
         return;
     };
 
+    if new.content == old.content {
+        debug!("The content of the old message was the same as the content of the new message.");
+        return;
+    }
+
     if new.author.bot {
         debug!("The message author was a bot.");
         return;
