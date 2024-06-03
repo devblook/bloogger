@@ -6,7 +6,11 @@ use serenity::{
 };
 use tracing::{debug, error, instrument};
 
-use crate::{channel, colors::Colors, event::Event, texts::Texts as GlobalTexts};
+use crate::{
+    channel, colors::Colors, event::Event, texts::Texts as GlobalTexts, utils::text::into_blocks,
+};
+
+const MAX_FIELD_SIZE: usize = 1024;
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -23,8 +27,8 @@ impl Default for Texts {
     fn default() -> Self {
         Self {
             description: String::from("Updated their [message](%link%) in %channel%"),
-            now: String::from("Now"),
-            previous: String::from("Previous"),
+            now: String::from("Now N.%i%"),
+            previous: String::from("Previous N.%i%"),
             date: String::from("Date"),
             id: String::from("ID"),
             id_body: String::from("```toml\nUser = %user_id%\nMessage = %message_id%\n```"),
@@ -117,6 +121,36 @@ pub async fn message_update_event(
         .replace("%user_id%", &new.author.id.get().to_string())
         .replace("%message_id%", &new.id.get().to_string());
 
+    let mut fields = into_blocks(&new.content, MAX_FIELD_SIZE)
+        .into_iter()
+        .enumerate()
+        .map(|(i, content)| {
+            (
+                texts.message_update.now.replace("%i%", &i.to_string()),
+                content,
+                false,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    for (i, content) in into_blocks(&old.content, MAX_FIELD_SIZE)
+        .into_iter()
+        .enumerate()
+    {
+        fields.push((
+            texts.message_update.previous.replace("%i%", &i.to_string()),
+            content,
+            false,
+        ))
+    }
+
+    fields.push((
+        texts.message_update.date.clone(),
+        format!("<t:{timestamp}:F>"),
+        false,
+    ));
+    fields.push((texts.message_update.id.clone(), id_body, false));
+
     if let Err(err) = channel
         .send_message(
             &ctx.http,
@@ -125,16 +159,7 @@ pub async fn message_update_event(
                     .color(Colors::PRIMARY)
                     .author(embed_author)
                     .description(description)
-                    .fields([
-                        (&texts.message_update.now, new.content, false),
-                        (&texts.message_update.previous, old.content, false),
-                        (
-                            &texts.message_update.date,
-                            format!("<t:{timestamp}:F>"),
-                            false,
-                        ),
-                        (&texts.message_update.id, id_body, false),
-                    ]),
+                    .fields(fields),
             ),
         )
         .await
