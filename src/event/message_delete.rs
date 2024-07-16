@@ -115,7 +115,10 @@ pub async fn message_delete_event(
         .enumerate()
         .map(|(i, content)| {
             (
-                texts.message_delete.content.replace("%i%", &i.to_string()),
+                texts
+                    .message_delete
+                    .content
+                    .replace("%i%", &(i + 1).to_string()),
                 content,
                 false,
             )
