@@ -126,7 +126,10 @@ pub async fn message_update_event(
         .enumerate()
         .map(|(i, content)| {
             (
-                texts.message_update.now.replace("%i%", &i.to_string()),
+                texts
+                    .message_update
+                    .now
+                    .replace("%i%", &(i + 1).to_string()),
                 content,
                 false,
             )
@@ -138,7 +141,10 @@ pub async fn message_update_event(
         .enumerate()
     {
         fields.push((
-            texts.message_update.previous.replace("%i%", &i.to_string()),
+            texts
+                .message_update
+                .previous
+                .replace("%i%", &(i + 1).to_string()),
             content,
             false,
         ))
