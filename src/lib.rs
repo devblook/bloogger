@@ -4,7 +4,7 @@ use poise::{samples::register_globally, Framework, FrameworkOptions};
 use serenity::{all::GatewayIntents, cache::Settings, Client};
 use tracing::{error, info, instrument};
 
-use command::set;
+use command::{set, unset};
 use data::Data;
 use handler::Handler;
 
@@ -37,7 +37,7 @@ pub async fn init() {
 
     let framework = Framework::<(), Box<dyn std::error::Error + Send + Sync>>::builder()
         .options(FrameworkOptions {
-            commands: vec![set()],
+            commands: vec![set(), unset()],
             ..Default::default()
         })
         .setup(|ctx, _, framework| {

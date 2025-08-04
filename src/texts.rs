@@ -11,7 +11,8 @@ pub struct Texts {
     internal_error: String,
     not_valid_channel: String,
     success_embed_title: String,
-    channel_setted_message: String,
+    channel_set: String,
+    channel_unset: String,
 
     pub message_delete: message_delete::Texts,
     pub message_update: message_update::Texts,
@@ -42,8 +43,12 @@ impl Texts {
         &self.success_embed_title
     }
 
-    pub fn channel_setted_message(&self) -> &str {
-        &self.channel_setted_message
+    pub fn channel_set(&self) -> &str {
+        &self.channel_set
+    }
+
+    pub fn channel_unset(&self) -> &str {
+        &self.channel_unset
     }
 }
 
@@ -62,7 +67,8 @@ impl Default for Texts {
             ),
             not_valid_channel: String::from("Channel is not a text or voice channel."),
             success_embed_title: String::from("Success"),
-            channel_setted_message: String::from("Channel was set."),
+            channel_set: String::from("Channel was set."),
+            channel_unset: String::from("Channel was unset."),
 
             message_delete: message_delete::Texts::default(),
             message_update: message_update::Texts::default(),

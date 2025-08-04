@@ -25,7 +25,8 @@ pub trait Messages {
     async fn not_in_guild(&self, data: &Data);
     async fn internal_error(&self, data: &Data);
     async fn not_valid_channel(&self, data: &Data);
-    async fn channel_setted_message(&self, data: &Data);
+    async fn channel_set(&self, data: &Data);
+    async fn channel_unset(&self, data: &Data);
     async fn missing_administrator(&self, data: &Data);
 }
 
@@ -64,12 +65,23 @@ impl Messages for Context<'_> {
     }
 
     #[instrument(skip(self, data))]
-    async fn channel_setted_message(&self, data: &Data) {
+    async fn channel_set(&self, data: &Data) {
         send_ephemeral_message(
             self,
             Colors::PRIMARY,
             data.texts.success_embed_title(),
-            data.texts.channel_setted_message(),
+            data.texts.channel_set(),
+        )
+        .await;
+    }
+
+    #[instrument(skip(self, data))]
+    async fn channel_unset(&self, data: &Data) {
+        send_ephemeral_message(
+            self,
+            Colors::PRIMARY,
+            data.texts.success_embed_title(),
+            data.texts.channel_unset(),
         )
         .await;
     }

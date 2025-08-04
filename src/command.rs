@@ -60,7 +60,47 @@ pub async fn set(ctx: Context<'_>, event: Event, channel: Option<Channel>) -> Re
 
     config.set_channel(event.key(), id);
     data.cache.insert(guild_id, config).await;
-    ctx.channel_setted_message(data).await;
+    ctx.channel_set(data).await;
+
+    Ok(())
+}
+
+#[instrument(skip(ctx, event))]
+#[poise::command(slash_command)]
+pub async fn unset(ctx: Context<'_>, event: Event) -> Result<(), Error> {
+    let data = ctx.serenity_context().data.read().await;
+    let data = data.get::<Data>().expect("Data should never be none.");
+
+    let guild_id = match ctx.guild_id() {
+        Some(id) => id.get(),
+        None => {
+            ctx.not_in_guild(data).await;
+            return Ok(());
+        }
+    };
+
+    let member = match ctx.author_member().await {
+        Some(member) => member,
+        None => return Ok(()),
+    };
+
+    if !member.permissions.unwrap().administrator() {
+        ctx.missing_administrator(data).await;
+        return Ok(());
+    }
+
+    let mut config = match data.cache.get_or_insert(guild_id).await {
+        Err(err) => {
+            error!("Failed to get GuildConfig: {err:?}");
+            ctx.internal_error(data).await;
+            return Ok(());
+        }
+        Ok(config) => config,
+    };
+
+    config.set_channel(event.key(), None);
+    data.cache.insert(guild_id, config).await;
+    ctx.channel_unset(data).await;
 
     Ok(())
 }
