@@ -78,7 +78,9 @@ pub async fn init() {
 
     let mut client = client.expect("Err case was handled earlier.");
 
-    let handler = ctrlc::set_handler(|| {});
+    let handler = ctrlc::set_handler(|| {
+        info!("Use the command 'stop' to finish the execution of the bot.");
+    });
     if let Err(err) = handler {
         error!("Failed to set CtrlC handler: {err}");
     }
