@@ -1,3 +1,5 @@
+pub mod guild_member_addition;
+pub mod guild_member_removal;
 pub mod message_delete;
 pub mod message_update;
 
@@ -7,6 +9,10 @@ pub enum Event {
     MessageDelete,
     #[name = "Message Update"]
     MessageUpdate,
+    #[name = "User Join"]
+    GuildMemberAddition,
+    #[name = "User Left"]
+    GuildMemberRemoval,
 }
 
 impl Event {
@@ -14,6 +20,8 @@ impl Event {
         match self {
             Self::MessageDelete => "MD",
             Self::MessageUpdate => "MU",
+            Self::GuildMemberAddition => "UJ",
+            Self::GuildMemberRemoval => "UL",
         }
     }
 }

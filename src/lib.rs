@@ -33,7 +33,9 @@ pub async fn init() {
         }
     };
 
-    let intents = GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT;
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::MESSAGE_CONTENT
+        | GatewayIntents::GUILD_MEMBERS;
 
     let framework = Framework::<(), Box<dyn std::error::Error + Send + Sync>>::builder()
         .options(FrameworkOptions {

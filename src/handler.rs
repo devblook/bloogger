@@ -1,4 +1,4 @@
-use serenity::all::{Message, MessageUpdateEvent};
+use serenity::all::{Member, Message, MessageUpdateEvent, User};
 use serenity::{
     all::{ChannelId, GuildId, MessageId},
     client::{Context, EventHandler},
@@ -44,5 +44,27 @@ impl EventHandler for Handler {
     ) {
         event::message_update::message_update_event(ctx, old_if_available, new, event, &self.texts)
             .await
+    }
+
+    async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
+        event::guild_member_addition::guild_member_addition_event(ctx, new_member, &self.texts)
+            .await
+    }
+
+    async fn guild_member_removal(
+        &self,
+        ctx: Context,
+        guild_id: GuildId,
+        user: User,
+        member: Option<Member>,
+    ) {
+        event::guild_member_removal::guild_member_removal_event(
+            ctx,
+            guild_id,
+            user,
+            member,
+            &self.texts,
+        )
+        .await
     }
 }

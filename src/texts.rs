@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::event::{message_delete, message_update};
+use crate::event::{guild_member_addition, guild_member_removal, message_delete, message_update};
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -16,6 +16,8 @@ pub struct Texts {
 
     pub message_delete: message_delete::Texts,
     pub message_update: message_update::Texts,
+    pub guild_member_addition: guild_member_addition::Texts,
+    pub guild_member_removal: guild_member_removal::Texts,
 }
 
 impl Texts {
@@ -72,6 +74,8 @@ impl Default for Texts {
 
             message_delete: message_delete::Texts::default(),
             message_update: message_update::Texts::default(),
+            guild_member_addition: guild_member_addition::Texts::default(),
+            guild_member_removal: guild_member_removal::Texts::default(),
         }
     }
 }
