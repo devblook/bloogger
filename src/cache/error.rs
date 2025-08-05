@@ -1,3 +1,5 @@
+// Allow unused fields, which are used for Debug output
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Error {
     SaveError(SaveError),
@@ -16,6 +18,8 @@ impl From<LoadError> for Error {
     }
 }
 
+// Allow unused fields, which are used for Debug output
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum SaveError {
     FailedSerialization(serde_json::Error),
@@ -34,6 +38,8 @@ impl From<std::io::Error> for SaveError {
     }
 }
 
+// Allow unused fields, which are used for Debug output
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum LoadError {
     ConfigNotFound(u64),

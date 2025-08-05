@@ -1,3 +1,5 @@
+// Allow unused fields, which are used for Debug output
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Error {
     Serialization(serde_json::Error),
